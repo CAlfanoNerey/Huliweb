@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mysqlcoi',
+        'NAME': 'HuliSQL',
         'USER': 'root',
         'PASSWORD': 'rocktofakie',
         'PORT': 3306,

@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserChangeForm, UserCr
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, RegexValidator
 
-from .models import Requester, Recipient, User
+from .models import  User
 
 # from django.contrib.auth.forms import UserCreationForm
 #
@@ -99,34 +99,11 @@ class UpdatePasswordForm(UserCreationForm):
         ]
 
 
-class RequesterForm(forms.ModelForm):
-    # addresLine1 = forms.CharField(label = 'Address Line 1', max_length=200,)
-    # addresLine2 = forms.CharField(required=False)
-    # city = forms.CharField(label = 'City', max_length=200,)
-    # zip = forms.IntegerField(validators=[MaxValueValidator(99999)])
-    # fax = forms.IntegerField(required=False)
-
-    class Meta:
-        model = Requester
-        fields = ('__all__')
 
 
-class RecipientForm(forms.ModelForm):
-    class Meta:
-        model = Recipient
-        # exclude = ['user']
-        fields = (
-            '__all__')  # ('user', 'name', 'address_line1', 'address_line2', 'city','state','email', 'zipcode', 'fax')
 
 
-class RequesterDisplayForm(forms.ModelForm):
-    name = forms.CharField()
-    class Meta:
-        model = Requester
-        fields = ('name',)
 
-    def get_name(self):
-        return self.name
 
 class LoginForm(AuthenticationForm):
     def confirm_login_allowed(self, user):

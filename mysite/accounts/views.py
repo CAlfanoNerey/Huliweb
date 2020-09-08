@@ -12,14 +12,14 @@ from django.contrib.auth.decorators import login_required
 from django.template.loader import get_template
 from django.urls import reverse, reverse_lazy
 from django.views import generic, View
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from xhtml2pdf import pisa
 
-from .forms import RequesterForm, RecipientForm, RegistrationForm, RegisterUpdateForm, UpdatePasswordForm, \
-    RequesterDisplayForm
+from .forms import RegistrationForm, RegisterUpdateForm, UpdatePasswordForm
+
 
 from django.views.generic.edit import CreateView, UpdateView
-from .models import Recipient, Requester, User
+from .models import User, Item
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.forms import UserChangeForm
@@ -31,168 +31,6 @@ from .utils import render_to_pdf
 
 def indexView(request):
     return render(request, 'index.html')
-
-
-class viewdoc(generic.DetailView):
-    model = Recipient
-
-    template_name = 'COIDoc2.html'
-
-
-# class PickRequesterView(View):
-#     def get(self, request, *args, **kwargs):
-#         user = request.user
-#         requesterDisplay=
-
-
-class getRequesterView(generic.DetailView):
-
-    def get(self, request, *args, **kwargs):
-        requesterdisplay = Requester.objects.all()
-
-        return render(request, 'rChoose.html', {
-            'requesterdisplay': requesterdisplay,
-        })
-        template_name = 'rChoose.html'
-        return render(request, template_name, data)
-
-
-@staff_member_required()
-def editRequesterView(request, pk=None):
-    if pk:
-        requesterrec = Requester.objects.get(id=pk)
-        form = RequesterForm(instance=requesterrec)
-        if request.method == 'POST':
-            form = RequesterForm(request.POST, instance=requesterrec)
-            form.save()
-            return redirect('accounts:rChoose')
-
-    args = {'requester': requesterrec, 'form': form}
-
-    return render(request, 'editrequester.html', args)
-
-    # if request.method == "POST":
-    #     context = {}
-    #     form = RequesterDisplayForm(request.POST)
-    #
-    #     context['form'] = form
-    #
-    #     if form.is_valid():
-    #         name = form.requester_id()
-    #         return redirect('certholder', {'slug':name} )
-    # else:
-    #     form = RequesterDisplayForm()
-    # return render(request, 'rChoose.html', {'form': form})
-
-
-@staff_member_required()
-def CertHolderView(request, pk=None):
-    if pk:
-        cRequester = Requester.objects.get(id=pk)
-
-        recipientdisplay = Recipient.objects.all().filter(Requester_id=pk)
-
-    args = {'cRequester': cRequester, 'recipientdisplay': recipientdisplay}
-
-    return render(request, 'certholder.html', args)
-
-
-@staff_member_required()
-def editRecipientView(request, pk=None, ):
-    if pk:
-        getrecipient = Recipient.objects.get(id=pk)
-        key = Recipient.objects.get(id=pk)
-        form = RecipientForm(instance=getrecipient)
-        if request.method == 'POST':
-            form = RecipientForm(request.POST, instance=getrecipient)
-            form.save()
-            return redirect("accounts:certholder", pk=key.id)
-
-    args = {'recipient': getrecipient, 'form': form}
-
-    return render(request, 'editrecipient.html', args)
-
-
-# class CertHolderView(generic.DetailView):
-#
-#     def get(self, request, *args, **kwargs):
-#
-#         # user = request.user
-#         # currUser = User.objects.get(id = user.pk)
-#         # userdisplay = User.objects.all()
-#         # recipientdisplay = Recipient.objects.all().filter(user_id = user)
-#
-#
-#         requesterdisplay = Requester.objects.all()
-#         recipientdisplay = Recipient.objects.all().filter(Requester.Requester_id )
-#
-#         #currRequester
-#
-#         return render(request, 'certholder.html', {
-#             'currUser': currUser,
-#             'user': userdisplay,
-#             'recipient': recipientdisplay,
-#             'error_message': "You didn't select a choice.",
-#         })
-#         template_name = 'certholder.html'
-#         return render(request, template_name,data)
-
-# class CertHolderView(ListView):
-#     def get(self, request, *args, **kwargs):
-#         user = request.user
-#         queryset = Recipient.objects.filter(user_id = user)
-#         return render(request,queryset)
-
-
-class GeneratePdf(View):
-    def get(self, request, pk=None, requester_pk=None):
-        if pk:
-            cRequester = Requester.objects.get(id=requester_pk)
-            recipientdisplay = Recipient.objects.get(id=pk)
-
-            data = {'requester': cRequester, 'recipient': recipientdisplay}
-
-            pdf = render_to_pdf('COIDoc.html', data)
-            return HttpResponse(pdf, content_type='application/pdf')
-
-
-# class GeneratePdf(View):
-#     def get(self, request, *args, **kwargs):
-#         user = request.user
-#
-#         userdisplay = User.objects.get(id = user.id)
-#         recipientdisplay = Recipient.objects.get(id=self.kwargs['pk'])
-#         data = {
-#             # 'user' : request.user.name,
-#             'user': userdisplay,
-#             'recipient': recipientdisplay
-#         }
-#         pdf = render_to_pdf('COIDoc.html', data)
-#         return HttpResponse(pdf, content_type='application/pdf')
-
-
-# class GeneratePDF(View):
-#     def get(self, request, *args, **kwargs):
-#         template = get_template('invoice.html')
-#         context = {
-#             "invoice_id": 123,
-#             "customer_name": "John Cooper",
-#             "amount": 1399.99,
-#             "today": "Today",
-#         }
-#         html = template.render(context)
-#         pdf = render_to_pdf('invoice.html', context)
-#         if pdf:
-#             response = HttpResponse(pdf, content_type='application/pdf')
-#             filename = "Invoice_%s.pdf" %("12341231")
-#             content = "inline; filename='%s'" %(filename)
-#             download = request.GET.get("download")
-#             if download:
-#                 content = "attachment; filename='%s'" %(filename)
-#             response['Content-Disposition'] = content
-#             return response
-#         return HttpResponse("Not found")
-
 
 @login_required()
 def dashboardView(request):
@@ -208,48 +46,6 @@ class SignUpView(CreateView):
     success_url = reverse_lazy('accounts:login')
     template_name = 'registration/register.html'
 
-
-# def registerView(request):
-#     if request.method == "POST":
-#         form = RegistrationForm(request.POST)
-#
-#         if form.is_valid():
-#             user = form.save()
-#             user.set_password(user.password)
-#             user.save()
-#
-#             return redirect('login_url')
-#     else:
-#         form = RegistrationForm()
-#
-#     return render(request, 'registration/register.html', {'form': form})
-
-
-@staff_member_required
-def requesterView(request):
-    # context= {}
-    # form = RequesterForm(request.POST)
-    # context['form'] = form
-
-    args = {'user': request.user}
-
-    if request.method == "POST":
-
-        context = {}
-        form = RequesterForm(request.POST)
-        form.instance.user = request.user
-        context['form'] = form
-        if form.is_valid():
-            form.save()
-            return redirect('accounts:rChoose')
-    else:
-        form = RequesterForm()
-    return render(request, 'requester.html', {'form': form}, )
-
-
-# def view_profile(request):
-#     args = {'user': request.user}
-#     return render(request, 'profile.html', args)
 
 class ViewProfile(generic.DetailView):
     model = User
@@ -282,27 +78,6 @@ def edit_password(request):
         return render(request, 'password.html', args)
 
 
-@staff_member_required
-def recipientView(request):
-    # context= {}
-    # form = RequesterForm(request.POST)
-    # context['form'] = form
-
-    # args = {'user': request.user}
-
-    if request.method == "POST":
-
-        context = {}
-        form = RecipientForm(request.POST)
-        # form.instance.user = request.user
-        context['form'] = form
-
-        if form.is_valid():
-            form.save()
-            return redirect('accounts:rChoose')
-    else:
-        form = RecipientForm()
-    return render(request, 'recipient.html', {'form': form}, )
 
 
 def RequesterUpdate(request):
@@ -312,9 +87,6 @@ def RequesterUpdate(request):
     success_url = 'profile'
 
 
-# def getobject(self, *args, **kwargs):
-#      user_ = self.request.user
-#      return get_object_or_404(User, user=user_)
 
 
 def loginview(request):
@@ -336,18 +108,38 @@ def loginview(request):
         form = AuthenticationForm()
     return render(request, 'registration/login.html', {'form': form}, )
 
-# def login_view(request):
-#     if request.method == 'POST':
-#         username = request.POST['username']
-#         password = request.POST['password']
-#         user = authenticate(username=username, password=password)
-#         if user is not None:
-#             login(request, user)
-#             form=
-#             return render(request, 'logged_in.html')
-#         else:
-#             return render(request, 'login.html',
-#                 {'message': 'Bad username or password'}
-#             )
-#     else:
-#         return render(request, 'login.html')
+
+class HomeView(ListView):
+    model = Item
+    template_name = "index.html"
+
+
+# def homeView(request):
+#     args = {
+#         'items': Item.objects.all()
+#     }
+#     return render(request, "index.html", args)
+
+class ItemDetailView(DetailView):
+    model = Item
+    template_name = 'product-page.html'
+
+def item_list (request):
+    args = {
+        'items': Item.objects.all()
+    }
+    return render(request, "item_list.html", args)
+
+
+def checkoutPage (request):
+    args = {
+        'items': Item.objects.all()
+    }
+    return render(request, "checkout-page.html", args)
+
+
+def productPage (request):
+    args = {
+        'items': Item.objects.all()
+    }
+    return render(request, "product-page.html", args)

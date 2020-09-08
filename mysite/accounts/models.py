@@ -5,7 +5,7 @@ from django.db.models.signals import post_save
 
 # Create your models here.
 from django.dispatch import receiver
-
+from django.shortcuts import reverse
 from django.conf import settings
 
 TITLE_STATES = [
@@ -26,20 +26,7 @@ TITLE_STATES = [
 ]
 
 
-class Requester(models.Model):
 
-    name = models.CharField(max_length=200)
-    address_line1 = models.CharField(max_length=200)
-    address_line2 = models.CharField(blank=True, null=True, max_length=200)
-    # state = models.ForeignKey('States', null=True, blank=True)
-    city = models.CharField(max_length=200)
-    state_or_territory = models.CharField(max_length=40, choices=TITLE_STATES)
-    #zipcode = models.PositiveIntegerField(blank=True, null=True)
-    zipcode = models.PositiveIntegerField(validators=[MaxValueValidator(99999)])
-    fax = models.IntegerField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
 
 
 class User(AbstractUser):
@@ -60,32 +47,67 @@ class User(AbstractUser):
         return self.username
 
 
+CATEGORY_CHOICES = [
+    ('S', 'Shirt')
+]
+
+LABEL_CHOICES = [
+    ('P', 'primary'),
+    ('S', 'secondary'),
+    ('D', 'danger')
+]
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    description = models.CharField(max_length=100, default='')
-    city = models.CharField(max_length=100, default='')
-    website = models.URLField(max_length=100, default='')
-    phone = models.IntegerField(default=0)
+class Item(models.Model):
+    title = models.CharField(max_length=100)
+    price = models.FloatField()
+    discount_price = models.FloatField(blank=True, null=True)
+    category = models.CharField(choices= CATEGORY_CHOICES, max_length=2)
+    label = models.CharField(choices= LABEL_CHOICES, max_length=1)
+    slug = models.SlugField()
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse("accounts:productPage", kwargs={
+            'slug': self.slug
+        })
 
 
-class Recipient(models.Model):
-
-    Requester = models.ForeignKey(Requester, on_delete=models.CASCADE)
-
-
-    name = models.CharField(max_length=200)
-    address_line1 = models.CharField(max_length=200)
-    address_line2 = models.CharField(blank=True, null=True,max_length=200)
-    city = models.CharField(max_length=200)
-    state_or_territory = models.CharField(max_length=40, choices=TITLE_STATES)
-    zipcode = models.PositiveIntegerField(validators=[MaxValueValidator(99999)])
-    email = models.CharField(max_length=200)
-    fax = models.IntegerField(blank=True, null=True)
+class OrderItem(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.title
+
+
+class Order(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    items = models.ManyToManyField(OrderItem)
+    start_date = models.DateTimeField(auto_now_add=True)
+    ordered_date = models.DateTimeField()
+    ordered = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.username
+
+
+# class Recipient(models.Model):
+#
+#     Requester = models.ForeignKey(Requester, on_delete=models.CASCADE)
+#
+#
+#     name = models.CharField(max_length=200)
+#     address_line1 = models.CharField(max_length=200)
+#     address_line2 = models.CharField(blank=True, null=True,max_length=200)
+#     city = models.CharField(max_length=200)
+#     state_or_territory = models.CharField(max_length=40, choices=TITLE_STATES)
+#     zipcode = models.PositiveIntegerField(validators=[MaxValueValidator(99999)])
+#     email = models.CharField(max_length=200)
+#     fax = models.IntegerField(blank=True, null=True)
+#
+#     def __str__(self):
+#         return self.name
 
 
 
